@@ -1,0 +1,72 @@
+
+
+
+<script>
+Try it: ${base}`;
+try{ await navigator.share ? navigator.share({title:'Love Score',text,text,url:base}) : navigator.clipboard.writeText(text); alert('Link copied / shared!'); }
+catch(e){ alert('Could not share.'); }
+});
+
+
+// reset / start over
+resetBtn.addEventListener('click', ()=>{ form.reset(); document.querySelectorAll('.option').forEach(o=>o.setAttribute('aria-pressed','false')); showStep(1); history.replaceState(null,'', location.pathname); });
+startOver.addEventListener('click', ()=>{ form.reset(); document.querySelectorAll('.option').forEach(o=>o.setAttribute('aria-pressed','false')); showStep(1); history.replaceState(null,'', location.pathname); });
+
+
+// theme
+const savedTheme = localStorage.getItem('theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+if(savedTheme==='dark') document.documentElement.setAttribute('data-theme','dark'), themeToggle.setAttribute('aria-pressed','true');
+themeToggle.addEventListener('click', ()=>{
+const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+if(isDark){ document.documentElement.removeAttribute('data-theme'); themeToggle.setAttribute('aria-pressed','false'); localStorage.setItem('theme','light'); }
+else{ document.documentElement.setAttribute('data-theme','dark'); themeToggle.setAttribute('aria-pressed','true'); localStorage.setItem('theme','dark'); }
+});
+
+
+// on load: if url has params, try to populate
+(function hydrateFromURL(){
+const params = new URLSearchParams(location.search);
+const encoded = params.get('n');
+if(encoded){ try{ const decoded = decodeURIComponent(atob(encoded)); const [a,b] = decoded.split('|'); if(a) nameA.value = a; if(b) nameB.value = b; }
+catch(e){} }
+})();
+
+
+// accessibility: keyboard support for options (space/enter)
+document.addEventListener('keydown',(e)=>{
+if((e.key===' '||e.key==='Enter') && document.activeElement && document.activeElement.classList.contains('option')){
+e.preventDefault(); document.activeElement.click();
+}
+});
+
+
+// prevent any form submit default
+form.addEventListener('submit', (e)=> e.preventDefault());
+
+
+// OPTIONAL: swap hero/result images based on score for extra delight
+function setResultArt(score){
+const hero = document.getElementById('hero-img');
+const resultBox = document.getElementById('result-box');
+if(!hero||!resultBox) return;
+// mild logic: happier scores get brighter images
+if(score >= 75){ hero.style.backgroundImage = "url('https://images.unsplash.com/photo-1517502166878-35c93a0072bb?auto=format&fit=crop&w=1400&q=80')"; resultBox.style.backgroundImage = "linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.1)), url('https://images.unsplash.com/photo-1506086679523-9b9f0c4f215f?auto=format&fit=crop&w=1400&q=80')" }
+else if(score >= 50){ hero.style.backgroundImage = "url('https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=1400&q=80')"; resultBox.style.backgroundImage = "linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.1)), url('https://images.unsplash.com/photo-1506086679523-9b9f0c4f215f?auto=format&fit=crop&w=1400&q=80')" }
+else { hero.style.backgroundImage = "url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1400&q=80')"; resultBox.style.backgroundImage = "linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.1)), url('https://images.unsplash.com/photo-1506086679523-9b9f0c4f215f?auto=format&fit=crop&w=1400&q=80')" }
+}
+
+
+// hook into result display to set art
+(function observeScoreChange(){
+const observer = new MutationObserver((mutations)=>{
+for(const m of mutations){ if(m.type==='childList'){
+const text = scoreEl.textContent || ''; const val = Number(text.replace('%',''));
+if(!Number.isNaN(val)) setResultArt(val);
+}}
+});
+observer.observe(scoreEl, {childList:true, subtree:true});
+})();
+</script>
+
+</body>
+</html>
